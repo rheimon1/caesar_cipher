@@ -1,22 +1,6 @@
-import requests
 import json
 import hashlib
 from collections import OrderedDict
-
-def save_content_json(response):
-    # format dictionary
-    data_formatted = json.dumps(response, indent=2)
-
-    with open('answer.json', 'w') as file:
-        file.write(data_formatted)
-
-
-def open_content_json():
-    try:
-        json_file = open('answer.json', 'r+')
-        return json_file
-    except Exception as error:
-        return error
 
 
 def decode_text(cifrado, numero_casas):
@@ -29,49 +13,42 @@ def decode_text(cifrado, numero_casas):
     for letter in cifrado:
         if letter in characters:
             # get number of the encoded character
-            aux = characters.find(letter)
+            number = characters.find(letter)
 
             # character number in the alphabet
-            aux = aux - numero_casas
+            number = number - numero_casas
 
-            if aux >= len(characters):
-                aux = aux - len(characters)
-            elif aux < 0:
-                aux = aux + len(characters)
+            if number >= len(characters):
+                number = number - len(characters)
+            elif number < 0:
+                number = number + len(characters)
 
-            decifrado += characters[aux]
+            decifrado += characters[number]
         else:
             decifrado += letter
     return decifrado
 
-# requisition result
-response = requests.get("https://api.codenation.dev/v1/challenge/dev-ps/generate-data?token=")
-
-# convert bytes to dictionary
-response = json.loads(response.content.decode('utf-8'), object_pairs_hook=OrderedDict)
-
-# content requisition
-save_content_json(response)
 
 # open json file
-json_file = open_content_json()
-json_data = json.load(json_file, object_pairs_hook=OrderedDict)
+try:
+    with open('answer.json', 'r') as file:
+        json_file = file.read()
+except Exception as error:
+    print(error)
 
-cifrado = json_data["cifrado"].lower()
-numero_casas = json_data["numero_casas"]
+json_data = json.loads(json_file, object_pairs_hook=OrderedDict)
 
-decifrado = decode_text(cifrado, numero_casas)
+encrypted_text = json_data["cifrado"].lower()
+shift = json_data["numero_casas"]
+encoding = file.encoding
 
-json_data['decifrado'] = decifrado
+decrypted_text = decode_text(encrypted_text, shift)
+json_data["decifrado"] = decrypted_text
 
-save_content_json(json_data)
+summary = hashlib.sha1(decrypted_text.encode(encoding)).hexdigest()
+json_data['resumo_criptografico'] = summary
+
+with open('answer.json', 'w') as file:
+    json.dump(json_data, file, indent=2)
 
 
-json_file = open_content_json()
-
-encoding = json_file.encoding
-
-resumo = hashlib.sha1(decifrado.encode(encoding)).hexdigest()
-json_data['resumo_criptografico'] = resumo
-
-save_content_json(json_data)
