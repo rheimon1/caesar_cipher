@@ -3,30 +3,30 @@ import hashlib
 from collections import OrderedDict
 
 
-def decode_text(cifrado, numero_casas):
+def decode_text(encrypted_text, shift):
     characters = 'abcdefghijklmnopqrstuvwxyz'
 
     # string to store the decode text
-    decifrado = ''
+    decrypted_text = ''
 
     # decodes each character of the encoded text
-    for letter in cifrado:
+    for letter in encrypted_text:
         if letter in characters:
             # get number of the encoded character
             number = characters.find(letter)
 
             # character number in the alphabet
-            number = number - numero_casas
+            number = number - shift
 
             if number >= len(characters):
                 number = number - len(characters)
             elif number < 0:
                 number = number + len(characters)
 
-            decifrado += characters[number]
+            decrypted_text += characters[number]
         else:
-            decifrado += letter
-    return decifrado
+            decrypted_text += letter
+    return decrypted_text
 
 
 # open json file
